@@ -19,7 +19,10 @@ module.exports = {
     'no-multiple-empty-lines': 0,
     'no-unused-expressions': 0,
     'key-spacing': 0,
-    'space-before-blocks': 0
+    'space-before-blocks': 0,
+    'comma-spacing': 0,
+    'arrow-spacing': 0,
+    'indent': 0
   },
   parserOptions: {
     parser: 'babel-eslint'
