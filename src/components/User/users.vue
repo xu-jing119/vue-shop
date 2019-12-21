@@ -51,9 +51,9 @@
           </template>
       </el-table-column>
       <el-table-column label="操作"  width='180px'>
-          <template>
-            <el-button type="primary" size="mini" icon="el-icon-edit"></el-button>
-            <el-button type="danger" size="mini" icon="el-icon-delete"></el-button>
+          <template slot-scope="scope">
+            <el-button type="primary" size="mini" icon="el-icon-edit" @click='editShowDialog(scope.row.id)'></el-button>
+            <el-button type="danger" size="mini" icon="el-icon-delete" @click='removeUserInfo(scope.row.id)'></el-button>
              <el-tooltip effect="dark" content="分配角色 " placement="top" :enterable='false'>
                 <el-button type="warning" size="mini" icon="el-icon-setting"></el-button>
             </el-tooltip>
@@ -61,6 +61,24 @@
           </template>
       </el-table-column>
       </el-table>
+      <!-- 修改用户对话框 -->
+      <el-dialog title="修改用户信息" :visible.sync="editDialogVisible" width="50%" @close='editDialogClose'>
+     <el-form :model="editForm" ref="editFormRef" label-width="70px" :rules="addRules">
+            <el-form-item label="用户名称">
+               <el-input v-model="editForm.username" disabled></el-input>
+            </el-form-item>
+            <el-form-item label="邮箱" prop="email">
+                 <el-input v-model="editForm.email"></el-input>
+            </el-form-item>
+            <el-form-item label="手机" prop="mobile">
+                 <el-input v-model="editForm.mobile"></el-input>
+            </el-form-item>
+         </el-form>
+   <span slot="footer" class="dialog-footer">
+    <el-button @click="editDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="editUserInfo">确 定</el-button>
+  </span>
+</el-dialog>
         <!-- 分页功能 -->
         <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="userInfo.pagenum" :page-sizes="[1, 2, 5, 10]" :page-size="userInfo.pagesize" layout="total, sizes, prev, pager, next, jumper" :total="total">
         </el-pagination>
@@ -102,13 +120,19 @@ export default {
         total:0,
         // 控制添加用户对话框的显示与隐藏
         addDialogVisible:false,
-        // 新增用户信息
+          // 新增用户信息
         addForm:{
             username:'',
             password:'',
             email:'',
             mobile:'',
         },
+        // 控制修改用户对话框的显示与隐藏
+        editDialogVisible:false,
+        editForm: {
+
+        },
+      
         // 新增用户规则
         addRules:{
         username: [
@@ -179,6 +203,59 @@ export default {
           // 重新渲染页面 获取新的用户列表
           this.getUser()
          })
+      },
+     async editShowDialog(key){
+        const {data:res} = await this.$http.get('users/' + key)
+        if(res.meta.status !==200){
+         return this.$message.error('查询用户信息失败')
+        }
+        this.editForm = res.data
+        this.editDialogVisible = true
+        // console.log(key)
+      },
+      editDialogClose(){
+        // 初始化修改表单
+        this.$refs.editFormRef.resetFields()
+      },
+      editUserInfo(){
+        // 验证是否通过
+         this.$refs.editFormRef.validate(async valid=>{
+           if(!valid) return
+          const {data:res} = await this.$http.put('users/' + this.editForm.id,{email:this.editForm.email,mobile:this.editForm.mobile})
+          if(res.meta.status!==200){
+          return this.$message.error('修改用户信息失败')
+         }
+          //  隐藏修改框
+        this.editDialogVisible = false
+        // 更新页面
+         this.getUser()
+        //  提示修改成功
+        this.$message.success('修改用户信息成功')
+         }) 
+      },
+      async removeUserInfo(key){
+        const confirmResult = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err=>err)
+        // console.log(confirmResult);如果点击确定返回值为字符串confirm,如果点击取消 返回值为字符串cancel
+        
+        if(confirmResult != 'confirm'){
+          return this.$message.info('已取消删除')
+        }
+      //  console.log('已删除');
+      const {data:res} = await this.$http.delete('users/'+key)
+        // console.log(res);
+        if(res.meta.status!==200){
+          // 删除失败
+          return this.$message.error(res.meta.msg)
+        }
+        this.$message.success(res.meta.msg)
+        this.getUser()
+
+
+        
       }
   }
 }

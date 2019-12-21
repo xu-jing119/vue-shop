@@ -29,7 +29,10 @@ module.exports = {
     'comma-dangle': 0,
     'object-property-newline': 0,
     'vue/no-parsing-error': 0,
-    'no-multi-spaces': 0
+    'no-multi-spaces': 0,
+    'no-useless-return': 0,
+    'eqeqeq': 0,
+    'semi':0
   },
   parserOptions: {
     parser: 'babel-eslint'
