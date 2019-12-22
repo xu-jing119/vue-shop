@@ -55,7 +55,7 @@
             <el-button type="primary" size="mini" icon="el-icon-edit" @click='editShowDialog(scope.row.id)'></el-button>
             <el-button type="danger" size="mini" icon="el-icon-delete" @click='removeUserInfo(scope.row.id)'></el-button>
              <el-tooltip effect="dark" content="分配角色 " placement="top" :enterable='false'>
-                <el-button type="warning" size="mini" icon="el-icon-setting"></el-button>
+                <el-button type="warning" size="mini" icon="el-icon-setting"  @click='setRoles(scope.row)'></el-button>
             </el-tooltip>
            
           </template>
@@ -82,6 +82,27 @@
         <!-- 分页功能 -->
         <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="userInfo.pagenum" :page-sizes="[1, 2, 5, 10]" :page-size="userInfo.pagesize" layout="total, sizes, prev, pager, next, jumper" :total="total">
         </el-pagination>
+        <!-- 角色分配 -->
+        <el-dialog title="提示" :visible.sync="rolesDialogVisible" width="50%" @close='rolesClose'>
+ <div>
+   <p>当前的用户:{{rolesInfo.username}}</p>
+   <p>当前的角色:{{rolesInfo.role_name}}</p>
+   <p>分配新角色:
+      <el-select v-model="newRoles" placeholder="请选择">
+    <el-option
+      v-for="item in rolesList"
+      :key="item.id"
+      :label="item.roleName"
+      :value="item.id">
+    </el-option>
+  </el-select>
+   </p>
+ </div>
+  <span slot="footer" class="dialog-footer">
+    <el-button @click="rolesDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="saveRoles">确 定</el-button>
+  </span>
+</el-dialog>
     </el-card>
     
   </div>
@@ -129,9 +150,11 @@ export default {
         },
         // 控制修改用户对话框的显示与隐藏
         editDialogVisible:false,
-        editForm: {
-
-        },
+        editForm: {},
+        rolesDialogVisible:false,
+        rolesInfo:{},
+        rolesList:[],
+        newRoles:'',
       
         // 新增用户规则
         addRules:{
@@ -252,10 +275,36 @@ export default {
           return this.$message.error(res.meta.msg)
         }
         this.$message.success(res.meta.msg)
-        this.getUser()
-
-
+        this.getUser() 
+      },
+     async setRoles(users){
+        this.rolesInfo = users
+        const {data:res} = await this.$http.get('roles')
+        if(res.meta.status!==200){
+          return this.$message.error('分配成功')
+        }
+        // console.log(res);
         
+        this.rolesList = res.data
+        this.rolesDialogVisible=true
+      },
+     async saveRoles(){
+        if(!this.newRoles){
+          return this.$message.error('请分配角色')
+        }
+        const {data:res} = await this.$http.put(`users/${this.rolesInfo.id}/role`,{rid:this.newRoles})
+        console.log(res);
+        
+        if(res.meta.status!==200){
+          return this.$message.error('更新角色失败')
+        }
+        this.$message.success('更新角色成功')
+        this.getUser()
+        this.rolesDialogVisible = false
+      },
+      rolesClose(){
+        this.newRoles=''
+        this.rolesInfo={}
       }
   }
 }
