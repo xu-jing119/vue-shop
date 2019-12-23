@@ -32,7 +32,9 @@ module.exports = {
     'no-multi-spaces': 0,
     'no-useless-return': 0,
     'eqeqeq': 0,
-    'semi':0
+    'semi':0,
+    'no-undef':0,
+    'quotes':0
   },
   parserOptions: {
     parser: 'babel-eslint'
