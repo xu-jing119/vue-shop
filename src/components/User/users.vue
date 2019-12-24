@@ -274,7 +274,13 @@ export default {
           // 删除失败
           return this.$message.error(res.meta.msg)
         }
+        // 删除成功
         this.$message.success(res.meta.msg)
+          if(this.userInfo.pagenum !== 1){
+            if(this.userList.length==1){
+              this.userInfo.pagenum-=1
+            }
+          }
         this.getUser() 
       },
      async setRoles(users){
